@@ -1,6 +1,7 @@
 const fs = require('fs');
 const inquirer = require('inquirer');
 
+//questions called via inquirer.prompts
 const questions = [
     {
         type: 'list',
@@ -73,44 +74,62 @@ const questions = [
 
     },
 ]
-//TODO: Find way to loop prompt in order to go back and change multiple sections
-inquirer.prompt(questions).then(answers => {
-    if (answers.choices === 'I am done updating the README') {
-        return;
-    }
-    const data = [
-        'Title:', '',
-        'Description:', '',
-        'Installation:', '',
-        'Usage:', '',
-        'Contributing:', '',
-        'Tests:', '',
-        'License:', ''
-    ];
+//async funciton which allows user to change multiple aspects of the readme before submitting
+const promptUser = async () => {
+    let finished = false;
+    const data = {};
 
+//while loop until "I am done" is selected
+    while (!finished) {
+const answers = await inquirer.prompt(questions);
+
+    if (answers.choices === 'I am done updating the README') {
+        finished = true;
+    } else {
     switch (answers.choices) {
         case 'Title':
-            data[1] = answers.title + '\n';
+            data.title = answers.title;
             break;
         case 'Description':
-            data[3] = answers.description + '\n';
+            data.description = answers.description;
             break;
         case 'Installation':
-            data[5] = answers.installation + '\n';
+            data.installation = answers.installation;
             break;
         case 'Usage':
-            data[7] = answers.usage + '\n';
+            data.usage = answers.usage;
             break;
         case 'Contributing':
-            data[9] = answers.contributing + '\n';
+            data.contributing = answers.contributing;
             break;
         case 'Tests':
-            data[11] = answers.tests + '\n';
+            data.tests = answers.tests;
             break;
         case 'License':
-            data[13] = answers.license+ '\n';
+            data.license = answers.license;
             break;
+        }
     }
-    fs.writeFileSync('README.md', data.join('\n'));
+}
+
+    const readmeData = [
+        `# ${data.title || ''}`,
+        '',
+        `## Description: ${data.description || ''}`,
+        '','---','',
+        `## Installation: ${data.installation || ''}`,
+        '','---','',
+        `## Usage: ${data.usage || ''}`,
+        '','---','',
+        `## Contributing: ${data.contributing || ''}`,
+        '','---','',
+        `## Tests: ${data.tests || ''}`,
+        '','---','',
+        `## License: ${data.license || ''}`,
+        ''
+    ].join('\n');
+
+    fs.writeFileSync('README.md', readmeData);
+};
     //TODO: function to execute git push to github
-});
+promptUser();
