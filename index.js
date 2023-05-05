@@ -1,6 +1,24 @@
 const fs = require('fs');
 const inquirer = require('inquirer');
 
+//license options
+const licenseChoice = [
+    'MIT',
+    'Apache 2.0',
+    'GPL 3.0',
+    'BSD 3-Clause',
+    'None'
+];
+const getBadge = (license) => {
+    const badgeLink = {
+        'MIT': '[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)',
+        'Apache 2.0': '[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)',
+        'GPL 3.0': '[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)',
+        'BSD 3-Clause': '[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)',
+        'None': ''
+    };
+    return badgeLink[license] || '';
+};
 //questions called via inquirer.prompts
 const questions = [
     {
@@ -8,6 +26,8 @@ const questions = [
         name: 'choices',
         message: 'Which section of the README would you like to update?',
         choices: [
+            'githubUsername',
+            'email',
             'Title',
             'Description',
             'Installation',
@@ -18,13 +38,23 @@ const questions = [
             'I am done updating the README'
         ]
     },
-
+    {
+        type: 'input',
+        name: 'githubUsername',
+        message: 'What is your Github username',
+        when: (answers) => answers.choices === 'githubUsername'
+    },
+    {
+        type: 'input',
+        name: 'email',
+        message: 'What is your email address?',
+        when: (answers) => answers.choices === 'email'
+    },
     {
         type: 'input',
         name: 'title',
         message: 'What is title of your project?',
         when: (answers) => answers.choices === 'Title'
-
     },
 
     {
@@ -67,9 +97,10 @@ const questions = [
 
     },
     {
-        type: 'input',
+        type: 'list',
         name: 'license',
         message: 'What is the license of your project?',
+        choices: licenseChoice,
         when: (answers) => answers.choices === 'License'
 
     },
@@ -87,6 +118,12 @@ const answers = await inquirer.prompt(questions);
         finished = true;
     } else {
     switch (answers.choices) {
+        case 'githubUsername':
+            data.githubUsername = answers.githubUsername;
+            break;
+        case 'email':
+            data.email = answers.email;
+            break;
         case 'Title':
             data.title = answers.title;
             break;
@@ -107,29 +144,54 @@ const answers = await inquirer.prompt(questions);
             break;
         case 'License':
             data.license = answers.license;
+            data.licenseBadge = getBadge(answers.license);
             break;
         }
     }
 }
 
     const readmeData = [
+        `${data.licenseBadge}`,
+        '',
         `# ${data.title || ''}`,
         '',
-        `## Description: ${data.description || ''}`,
-        '','---','',
-        `## Installation: ${data.installation || ''}`,
-        '','---','',
-        `## Usage: ${data.usage || ''}`,
-        '','---','',
-        `## Contributing: ${data.contributing || ''}`,
-        '','---','',
-        `## Tests: ${data.tests || ''}`,
-        '','---','',
-        `## License: ${data.license || ''}`,
-        ''
+        `## Description`,
+        '',
+        `${data.description || ''}`,
+        '',
+        `## Table of Contents`,
+        '',
+        `1. [Installation](#installation)`,
+        `2. [Usage](#usage)`,
+        `3. [License](#license)`,
+        `4. [Contributing](#contributing)`,
+        `5. [Tests](#tests)`,
+        `6. [Questions](#questions)`,
+        `## Installation`,
+        '',
+        `${data.installation || ''}`,
+        '',
+        `## Usage`,
+        `${data.usage || ''}`,
+        '',
+        `## License`,
+        `${data.license || ''}`,
+        '',
+        `## Contributing`,
+        `${data.contributing || ''}`,
+        '',
+        `## Tests`,
+        `${data.tests || ''}`,
+        '',
+        `## Questions`,
+        '',
+        `If you have questions you can contact me at:`,
+        `- GitHub: [${data.githubUsername}](https://github.com/${data.githubUsername})`,
+        `- Email: ${data.email}`,
+        '',
     ].join('\n');
 
     fs.writeFileSync('README.md', readmeData);
 };
-    //TODO: function to execute git push to github
+    //optional TODO: function to execute git push to github
 promptUser();
